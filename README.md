@@ -18,8 +18,8 @@
 
 5. Configure the URLs and disable the "Strip Prefixes" option for the containers below
 
-   - Apprite -> `https://<your-domain>`
-   - Apprite Console -> `https://<your-domain>/console`
-   - Apprite Realtime -> `https://<your-domain>/v1/realtime`
+   - Appwrite -> `https://<your-domain>`
+   - Appwrite Console -> `https://<your-domain>/console`
+   - Appwrite Realtime -> `https://<your-domain>/v1/realtime`
 
 <img width="468" alt="image" src="https://gist.github.com/user-attachments/assets/56de82ca-37c1-4e04-a42c-be5e16e4add7" />
