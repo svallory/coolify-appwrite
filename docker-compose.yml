@@ -944,7 +944,7 @@ networks:
   gateway:
     name: rcsagents-gateway
   runtimes:
-    name: runtimes
+    name: ${_APP_COMPUTE_RUNTIMES_NETWORK}
     external: true
 
 volumes:
