@@ -1,0 +1,83 @@
+# Configuration options for Cloudflare DNS Challenge
+# https://go-acme.github.io/lego/dns/cloudflare/
+version: '3.8'
+networks:
+  coolify:
+    external: true
+services:
+  traefik:
+    container_name: coolify-proxy
+    image: 'traefik:v2.10' # Or the version Coolify defaults to
+    restart: unless-stopped
+    environment:
+      # -------------------- REQUIRED --------------------
+      # You can use either API Token (recommended) or API Key + Email
+      # Option 1: API Token (recommended)
+      - CLOUDFLARE_DNS_API_TOKEN=<-[EDIT]- PASTE YOUR CLOUDFLARE API TOKEN HERE ->
+      # Option 2: API Key + Email (legacy)
+      # - CLOUDFLARE_EMAIL=<-[EDIT]- YOUR CLOUDFLARE EMAIL HERE ->
+      # - CLOUDFLARE_API_KEY=<-[EDIT]- YOUR CLOUDFLARE GLOBAL API KEY HERE ->
+      
+      # -------------------- OPTIONAL --------------------
+      # API base URL (Default: https://api.cloudflare.com/client/v4)
+      - CLOUDFLARE_BASE_URL=https://api.cloudflare.com/client/v4
+      # API request timeout in seconds (Default: 30)
+      - CLOUDFLARE_HTTP_TIMEOUT=30
+      # Time between DNS propagation check in seconds (Default: 2)
+      - CLOUDFLARE_POLLING_INTERVAL=2
+      # Maximum waiting time for DNS propagation in seconds (Default: 120)
+      - CLOUDFLARE_PROPAGATION_TIMEOUT=120
+      # The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)
+      - CLOUDFLARE_TTL=120
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - coolify
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+    healthcheck:
+      test: 'wget -qO- http://localhost:80/ping || exit 1'
+      interval: 4s
+      timeout: 2s
+      retries: 5
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/data/coolify/proxy:/traefik'
+    command:
+      - '--ping=true'
+      - '--ping.entrypoint=http'
+      - '--api.dashboard=true'
+      - '--api.insecure=false'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.https.address=:443'
+      - '--entrypoints.http.http.encodequerysemicolons=true'
+      - '--entrypoints.https.http.encodequerysemicolons=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--providers.file.directory=/traefik/dynamic/'
+      - '--providers.file.watch=true'
+      - '--providers.docker=true'
+      - '--providers.docker.network=coolify'
+
+      # UNCOMMENT BELOW FOR TESTING
+      # - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
+      - '--certificatesresolvers.letsencrypt.acme.storage=/traefik/acme.json'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge=true'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=0'
+      - '--certificatesresolvers.letsencrypt.acme.email=<-[EDIT]- YOUR EMAIL HERE ->'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.entrypoints=http
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.gzip.compress=true
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.<-[EDIT]- YOUR DOMAIN HERE ->`)"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].main=<-[EDIT]- YOUR DOMAIN HERE ->"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.<-[EDIT]- YOUR DOMAIN HERE ->"
