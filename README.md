@@ -172,6 +172,13 @@ Set up these DNS records in your DNS provider:
 
 ## Step 4: Deploy Appwrite in Coolify
 
+> [!IMPORTANT]
+> The Compose file has variables, so before saving it you need to uncheck the option "Escape special characters"
+> ![image](https://gist.github.com/user-attachments/assets/4f7b15fd-eb99-4290-b4b5-f82e76ad67c3)
+
+> [!TIP]
+> Use the "Show Deployable Compose" in the screen above to confirm Coolify is correctly replacing the variables in the docker compose with the values use set in the environment.
+
 1. **Create New Resource**
    - Go to Server → Resources → Add New → Docker Compose
 
